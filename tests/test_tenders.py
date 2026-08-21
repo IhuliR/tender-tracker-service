@@ -2,6 +2,12 @@ from typing import Any
 
 import pytest
 from httpx import AsyncClient, Response
+from sqlalchemy import event, select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from app.models import Tender, TenderStatus, TenderStatusHistory
+from app.schemas import TenderStatusUpdate
+from app.services import update_tender_status
 
 TENDERS_URL = "/api/v1/tenders"
 pytestmark = pytest.mark.asyncio
@@ -218,3 +224,68 @@ async def test_invalid_status_returns_422_without_changes(
     assert tender_response.json()["status"] == "draft"
     assert history_response.status_code == 200
     assert history_response.json() == []
+
+
+async def test_status_and_history_are_rolled_back_on_persistence_failure(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    async with session_factory() as session:
+        tender = Tender(
+            title="Bridge inspection",
+            description="Annual structural inspection services",
+        )
+        session.add(tender)
+        await session.commit()
+        tender_id = tender.id
+
+        executed_statements: list[str] = []
+
+        def fail_history_insert(
+            connection: Any,
+            cursor: Any,
+            statement: str,
+            parameters: Any,
+            context: Any,
+            executemany: bool,
+        ) -> None:
+            normalized_statement = statement.strip().upper()
+            if normalized_statement.startswith("UPDATE TENDERS"):
+                executed_statements.append("tender update")
+            if normalized_statement.startswith(
+                "INSERT INTO TENDER_STATUS_HISTORY"
+            ):
+                executed_statements.append("history insert")
+                raise RuntimeError("simulated history persistence failure")
+
+        bind = session.get_bind()
+        event.listen(bind, "before_cursor_execute", fail_history_insert)
+        try:
+            with pytest.raises(
+                RuntimeError,
+                match="simulated history persistence failure",
+            ):
+                await update_tender_status(
+                    session,
+                    tender_id,
+                    TenderStatusUpdate(
+                        new_status=TenderStatus.ACTIVE,
+                        changed_by="publisher-1",
+                        reason="Tender published",
+                    ),
+                )
+        finally:
+            event.remove(bind, "before_cursor_execute", fail_history_insert)
+
+    assert executed_statements == ["tender update", "history insert"]
+
+    async with session_factory() as verification_session:
+        persisted_tender = await verification_session.get(Tender, tender_id)
+        history_result = await verification_session.execute(
+            select(TenderStatusHistory).where(
+                TenderStatusHistory.tender_id == tender_id
+            )
+        )
+
+        assert persisted_tender is not None
+        assert persisted_tender.status == TenderStatus.DRAFT
+        assert history_result.scalars().all() == []
