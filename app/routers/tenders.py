@@ -5,7 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.models import Tender
-from app.schemas import TenderCreate, TenderRead
+from app.schemas import TenderCreate, TenderRead, TenderStatusUpdate
+from app.services import (
+    TenderNotFoundError,
+    TenderStatusConflictError,
+    update_tender_status,
+)
 
 
 router = APIRouter(prefix="/tenders", tags=["tenders"])
@@ -35,3 +40,27 @@ async def get_tender(
             detail="Tender not found",
         )
     return tender
+
+
+@router.patch(
+    "/{id}/status",
+    response_model=TenderRead,
+    status_code=status.HTTP_200_OK,
+)
+async def change_tender_status(
+    id: int,
+    status_data: TenderStatusUpdate,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> Tender:
+    try:
+        return await update_tender_status(session, id, status_data)
+    except TenderNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tender not found",
+        ) from error
+    except TenderStatusConflictError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Tender already has the requested status",
+        ) from error

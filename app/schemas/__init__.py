@@ -1,4 +1,14 @@
-from app.schemas.tender import StatusHistoryRead, TenderCreate, TenderRead
+from app.schemas.tender import (
+    StatusHistoryRead,
+    TenderCreate,
+    TenderRead,
+    TenderStatusUpdate,
+)
 
 
-__all__ = ["StatusHistoryRead", "TenderCreate", "TenderRead"]
+__all__ = [
+    "StatusHistoryRead",
+    "TenderCreate",
+    "TenderRead",
+    "TenderStatusUpdate",
+]

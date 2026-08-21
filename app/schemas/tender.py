@@ -10,6 +10,14 @@ class TenderCreate(BaseModel):
     description: str
 
 
+class TenderStatusUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    new_status: TenderStatus
+    changed_by: str
+    reason: str
+
+
 class TenderRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
