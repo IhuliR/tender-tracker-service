@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Tender, TenderStatusHistory
@@ -10,6 +11,23 @@ class TenderNotFoundError(Exception):
 
 class TenderStatusConflictError(Exception):
     pass
+
+
+async def get_tender_history(
+    session: AsyncSession,
+    tender_id: int,
+) -> list[TenderStatusHistory]:
+    tender = await session.get(Tender, tender_id)
+    if tender is None:
+        raise TenderNotFoundError
+
+    statement = (
+        select(TenderStatusHistory)
+        .where(TenderStatusHistory.tender_id == tender_id)
+        .order_by(TenderStatusHistory.changed_at, TenderStatusHistory.id)
+    )
+    result = await session.execute(statement)
+    return list(result.scalars().all())
 
 
 async def update_tender_status(
