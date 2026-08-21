@@ -15,5 +15,6 @@ celery_app.conf.update(
     enable_utc=True,
     result_serializer="json",
     task_serializer="json",
+    task_track_started=True,
     timezone="UTC",
 )
