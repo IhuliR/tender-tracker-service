@@ -1,3 +1,9 @@
+from app.schemas.analysis import (
+    AnalysisTaskAccepted,
+    AnalysisTaskStatus,
+    StatusChangeAnalysis,
+    StatusChangeAnalysisInput,
+)
 from app.schemas.tender import (
     StatusHistoryRead,
     TenderCreate,
@@ -6,6 +12,10 @@ from app.schemas.tender import (
 )
 
 __all__ = [
+    "AnalysisTaskAccepted",
+    "AnalysisTaskStatus",
+    "StatusChangeAnalysis",
+    "StatusChangeAnalysisInput",
     "StatusHistoryRead",
     "TenderCreate",
     "TenderRead",

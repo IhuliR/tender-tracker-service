@@ -70,6 +70,10 @@ async def read_tender_history(
     "/{id}/status",
     response_model=TenderRead,
     status_code=status.HTTP_200_OK,
+    responses={
+        404: {"description": "Tender not found"},
+        409: {"description": "Tender already has this status"},
+    },
 )
 async def change_tender_status(
     id: int,
