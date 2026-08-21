@@ -18,7 +18,6 @@ from app.services import (
     update_tender_status,
 )
 
-
 router = APIRouter(prefix="/tenders", tags=["tenders"])
 
 

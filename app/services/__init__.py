@@ -5,7 +5,6 @@ from app.services.tenders import (
     update_tender_status,
 )
 
-
 __all__ = [
     "TenderNotFoundError",
     "TenderStatusConflictError",
