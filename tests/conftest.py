@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import NullPool
 
-
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 if TEST_DATABASE_URL is None:
     raise pytest.UsageError("TEST_DATABASE_URL must be set for PostgreSQL tests")
@@ -26,8 +25,8 @@ if "test" not in test_database_name.lower():
 
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 
-from app.db import Base, get_session  # noqa: E402
-from app.main import app  # noqa: E402
+from app.db import Base, get_session
+from app.main import app
 
 
 @pytest_asyncio.fixture

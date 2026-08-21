@@ -5,7 +5,6 @@ from app.schemas.tender import (
     TenderStatusUpdate,
 )
 
-
 __all__ = [
     "StatusHistoryRead",
     "TenderCreate",

@@ -3,7 +3,6 @@ from typing import Any
 import pytest
 from httpx import AsyncClient, Response
 
-
 TENDERS_URL = "/api/v1/tenders"
 pytestmark = pytest.mark.asyncio
 
