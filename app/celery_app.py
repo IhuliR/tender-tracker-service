@@ -6,6 +6,7 @@ celery_app = Celery(
     "tender_tracker",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
+    include=["app.tasks.analysis"],
 )
 
 celery_app.conf.update(
