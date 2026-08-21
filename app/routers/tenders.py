@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
@@ -20,4 +20,18 @@ async def create_tender(
     session.add(tender)
     await session.commit()
     await session.refresh(tender)
+    return tender
+
+
+@router.get("/{id}", response_model=TenderRead, status_code=status.HTTP_200_OK)
+async def get_tender(
+    id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> Tender:
+    tender = await session.get(Tender, id)
+    if tender is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tender not found",
+        )
     return tender
