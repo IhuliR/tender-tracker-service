@@ -37,6 +37,10 @@ PUBLIC_TASK_STATES = {
     "/tenders/{tender_id}/history/{history_id}/ai-analysis",
     response_model=AnalysisTaskAccepted,
     status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        404: {"description": "Tender or status history not found"},
+        503: {"description": "AI analysis service is unavailable"},
+    },
 )
 async def enqueue_status_change_analysis(
     tender_id: int,
